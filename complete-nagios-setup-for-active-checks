@@ -1,0 +1,246 @@
+######   How to add Linux servers to nagios monitoring   ######
+
+Note:- If we r adding a new server in the nagios of a new account then add a new hostgroup in /usr/local/nagios/etc/objects/hostgroup.cfg 
+
+
+A. For Amazon Linux / Centos :-
+
+1.SSH to the server that is to be added in the nagios.
+2.#yum install nrpe nagios-plugins-all.x86_64
+3.cd /usr/lib64/nagios/plugins-------to check the plugins
+  if any plugin is missing then
+  wget http://nagios ip//plugin name
+   # wget http://202.52.134.101/check_cpu_perf
+   # wget http://202.52.134.101/check_mem
+
+  chmod +x plugin name 
+   # chmod +x check_cpu_perf
+   # chmod +x check_mem
+4.cd /etc/nagios/nrpe.cfg
+  allowed host:nagios ip
+  add 7-8 config lines similar to any other server
+ vi /etc/nagios/nrpe.cfg
+  make following changes:-
+                         a.  allowed host=202.52.134.101
+                        
+		        b.  Following are hardcoded lines regarding plugins paste it
+
+command[check_users]=/usr/lib64/nagios/plugins/check_users -w 5. -c 10
+command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+command[check_hda1]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /dev/hda1			     
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfgcommand[check_total_procs]=/usr/lib64/nagios/plugins/check_procs -w 150 -c 200 
+command[check_zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z		            
+command[check_raid]=/usr/lib64/nagios/plugins/check_raid
+command[check_yum]=sudo /usr/lib64/nagios/plugins/check_yum
+command[check_disk]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10%
+command[check_md_raid]=sudo /usr/lib64/nagios/plugins/check_md_raid
+command[check_mem]=/usr/lib64/nagios/plugins/check_mem -w 90,25 -c 95,50	
+command[check_cpu_perf]=/usr/lib64/nagios/plugins/check_cpu_perf
+command[check_uptime]=/usr/lib64/nagios/plugins/check_uptime
+
+5.restart nrpe.cfg
+6 whitelist the ip of the nagios in the SG of the instance from the console
+7.Also check memcached is  running or not.
+
+For adding on-prem server to nagios monitoring server goto container dhruv[202.52.134.196]  and for adding AWS server go to the container dhruv-nagios (202.52.134.196)
+
+
+Enter to our Dhruv container by (vzlist enter 2002)
+
+1.cd /usr/local/nagios/etc/objects/
+2.cp any server.cfg file new server.cfg
+3.Follow below steps:-
+   a. vi new server.cfg
+   b. Replace the name and IP of the server with the new server.
+   c. Add the services to be monitored with the required port numbers.
+   d. For content check browse the website and view the source of the page and search the title and cp stating word and paste in the file !word
+4.After adding the services reload the nagios
+  /etc/nagios/reload
+
+lastly go to the nagios and view the pending host and reschedule the services for the desired server. 
+
+
+—————————————————————————————————————————————————————————————————
+
+
+B. For Ubuntu:-
+
+On local server:-
+1.take ssh and install nrpe client by using following command
+  
+   #apt-get install nagios-nrpe-server nagios-plugins
+
+2. Check all plugins are installed
+
+   #cd /usr/lib/nagios/plugins
+
+3.If check_cpu_perf and check_mem are not present then
+  
+  #wget http://202.52.134.101/check_cpu_perf
+  
+  #wget http://202.52.134.101/check_mem
+
+4.Change permission of the plugins
+
+  #chmod +x check_cpu_perf check_mem
+
+5.Configure the nrpe.cfg file
+
+  vi /etc/nagios/nrpe.cfg
+  make following changes:-
+                         a.  allowed host=202.52.134.101
+                        
+			 b.  Following are hardcoded lines regarding plugins paste it
+
+		                     command[check_users]=/usr/lib/nagios/plugins/check_users -w 5 -c 10
+				     command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
+				     command[check_hda1]=/usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /dev/hda1
+				     command[check_zombie_procs]=/usr/lib/nagios/plugins/check_procs -w 5 -c 10 -s Z
+				     command[check_total_procs]=/usr/lib/nagios/plugins/check_procs -w 150 -c 200 
+		 		     command[check_raid]=/usr/lib/nagios/plugins/check_raid
+			tar zxf nagios-plugins-2.2.1.tar.gz
+(sys/kernel  issue)
+6.Restart nrpe.cfg
+
+  #/etc/init.d/nagios-nrpe-server
+
+
+For adding on-prem server to nagios monitoring server goto container dhruv[202.52.134.196]  and for adding AWS server go to the container dhruv-nagios (202.52.134.196)
+1.cd /usr/local/nagios/etc/objects/
+2.cp any server.cfg file new server.cfg
+3.Follow below steps:-
+   a. vi new server.cfg
+   b. Replace the name and IP of the server with the new server.
+   c. Add the services to be monitored with the required port numbers.
+   d. For content check browse the website and view the source of the page and search the title and cp stating word and paste in the file !word
+4.After adding the services reload the nagios
+  /etc/init.d/nagios/ reload
+
+Syntax check:-  /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+
+
+
+lastly go to the nagios and view the pending host and reschedule the services for the desired server. 
+
+
+###### How to add Windows servers to nagios monitoring ######
+
+1. RDP to the server
+2. Goto server manager
+        -- manage
+3. Add roles and feature
+        --features
+ 	    --snmp
+               --Install
+
+4. services.msc
+       --snmp
+          --properties
+              --security
+                  --add community
+                      Set   Read-Only
+                            public
+
+                    Nagios IP in blank box below
+                         --Restart
+
+5. Goto Window Search
+    -- Firewall
+         --Inbound Rule
+             --New Rule
+               --Add port
+                    UDP
+                    161
+                     --Click next -next-next-will see a tab where provide name of snmp
+                          Name:SNMP Allow
+                          Description: Created on today's date
+
+6.For a new server to be added after SNMP allow then enable FILE TRANSFER(icmpv4) rule listed in firewall to enable ping
+
+
+
+6. SSH to tlv1-nagios and add a cfg file for the windows server.
+7. Reload nagios and reschedule in nagios.
+
+
+************************************************************************************************
+
+1. Now ssh to nagios server[202.52.134.196]
+
+2. Add config file for relative windows server.
+
+3. Restart the nagios
+
+
+************************************************************************************************
+--- STEPS FOR  installing Nagios in Amazon Linux-----
+
+yum install httpd php
+yum install gcc glibc glibc-common
+yum install gd gd-devel
+
+adduser -m nagios
+passwd nagios
+
+groupadd nagcmd
+usermod -a -G nagcmd nagios
+usermod -a -G nagcmd apache
+
+mkdir ~/downloads
+cd ~/downloads
+
+wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz
+wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
+
+tar zxvf nagios-4.0.8.tar.gz
+cd nagios-4.0.8
+./configure --with-command-group=nagcmd
+make all
+make install
+make install-init
+make install-config
+make install-commandmode
+
+vim /usr/local/nagios/etc/objects/contacts.cfg
+  (configure email address)
+
+make install-webconf
+
+htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin  
+
+service httpd restart  
+
+===NAGIOS PLUGIN====
+cd ~/downloads
+tar zxvf nagios-plugins-2.0.3.tar.gz
+cd nagios-plugins-2.0.3
+./configure --with-nagios-user=nagios --with-nagios-group=nagios
+make
+make install
+chkconfig --add nagios
+chkconfig nagios on
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+http://<IP>/nagios
+
+
+----Adding Linux clients
+
+vi  /usr/local/nagios/etc/nagios.cfg
+
+#Add line
+cfg_file=/usr/local/nagios/etc/objects/client.cfg
+
+cd /usr/local/nagios/etc/objects
+
+cp  localhost.cfg   client.cfg
+
+vi client.cfg
+#add ip address 
+# replace localhost with clientname
+
+service nagios reatart 
+
+
+
