@@ -97,9 +97,8 @@ A. For Amazon Linux / Centos :-
   add 7-8 config lines similar to any other server
  vi /etc/nagios/nrpe.cfg
   make following changes:-
-                         a.  allowed host=your ip
-                        
-		        b.  Following are hardcoded lines regarding plugins paste it
+     a.  allowed host=your ip
+     b.  Following are hardcoded lines regarding plugins paste it
 
 command[check_users]=/usr/lib64/nagios/plugins/check_users -w 5. -c 10
 command[check_load]=/usr/lib64/nagios/plugins/check_load -w 15,10,5 -c 30,25,20
